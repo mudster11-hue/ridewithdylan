@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dylan's Rides | Map Explorer</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Caveat&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --moto-orange: #ff5722;
+            --dark-green: #1e2c20;
+            --glass-bg: rgba(30, 44, 32, 0.85);
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: sans-serif;
+            /* overflow: hidden; */
+            /* Prevents the whole page from scrolling */
+        }
+
+        /* THE FULLSCREEN MAP */
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            z-index: 1;
+        }
+
+        /* FLOATING UI CONTAINER */
+        .ui-layer {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            z-index: 1000;
+            /* Must be high to sit on top of Leaflet */
+            width: 320px;
+            pointer-events: none;
+            /* Allows clicking map through the gaps */
+        }
+
+        .card {
+            background: var(--glass-bg);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 6px solid var(--moto-orange);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            pointer-events: auto;
+            /* Re-enables clicking on the cards */
+            margin-bottom: 20px;
+            backdrop-filter: blur(5px);
+            /* Blurs the map behind the card */
+        }
+
+        .intro-card h1 {
+            font-family: 'Archivo Black', sans-serif;
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--moto-orange);
+        }
+
+        .intro-card p {
+            font-family: 'Caveat', cursive;
+            font-size: 1.4rem;
+            margin: 10px 0 0 0;
+        }
+
+        /* ROUTE ITEMS */
+        .route-item {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .route-item h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        /* The hidden section that pops up */
+        .route-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .route-item:hover {
+            background: var(--dark-green);
+            transform: translateX(10px);
+        }
+
+        .route-item:hover .route-details {
+            max-height: 200px;
+            /* Expands on hover */
+            margin-top: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--moto-orange);
+            text-decoration: none;
+            font-weight: bold;
+            border: 1px solid var(--moto-orange);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .btn:hover {
+            background: var(--moto-orange);
+            color: white;
+        }
+
+        /* 2. ADD THIS TO YOUR CSS */
+        .topnav {
+            background-color: #1e2c20;
+            overflow: hidden;
+            position: relative;
+            /* This ensures it stays at the top of the page */
+            z-index: 2000;
+            /* This ensures it sits ABOVE the map and the cards */
+        }
+
+        .topnav a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+
+        .topnav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        .topnav a.active {
+            background-color: #ff5722;
+            color: white;
+        }
+
+        .card.highlight-card {
+            border-left: 8px solid #ff0000;
+            /* Turns bright red */
+            background: #2a3b2c;
+            /* Slightly lighter green to show it's active */
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+        }
+
+        .route-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+            /* This makes it "slide" */
+        }
+
+        /* When the JavaScript adds 'highlight-card', the details slide open! */
+        .highlight-card .route-details {
+            max-height: 200px;
+            /* Big enough to show the text */
+            margin-top: 10px;
+        }
+
+        /* The glowing border effect */
+        .highlight-card {
+            border-left: 8px solid #ff0000 !important;
+            background-color: #2a3b2c !important;
+        }
+
+        .photo-layer {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            z-index: 9999;
+            /* Keeps it above the map */
+            pointer-events: none;
+        }
+
+        .photo-card {
+            width: 300px;
+            height: 200px;
+            background: #1e2c20;
+            border: 4px solid white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+            /* Starting Position: Hidden and shifted right */
+            opacity: 1;
+            transform: translateX(50px);
+            transition: all 0.4s ease-out;
+            overflow: hidden;
+        }
+
+        /* The Trigger Class */
+        .photo-card.show-photo {
+            opacity: 1;
+            transform: translateX(0);
+            /* Slides back to its spot */
+        }
+
+        #preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .schedulingButton {
+            padding: 15px 40px;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1.2rem;
+            background-color: #ff5722;
+            /* A bright "Moto" Orange */
+            color: white;
+            border: none;
+            cursor: pointer;
+            letter-spacing: 2px;
+            /* transform: translateX(-50%); */
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+            bottom: 300px;
+            position: absolute;
+            left: 80%;
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topnav">
+        <a class="active" href="index.html">Home</a>
+        <a href="maproutes.html">Routes</a>
+        <a href="scheduling.html">Scheduling</a>
+    </div>
+    <div class="ui-layer">
+
+        <div class="card intro-card">
+            <h1>DYLAN'S RIDES</h1>
+            <p>Select a route to explore the mountains.</p>
+        </div>
+
+        <div class="card route-item" data-route="route 1" data-img="route1.jpeg">
+            <h3>🏔️ Route 1</h3>
+            <div class="route-details">
+                <p>Route 1 description
+                <ul>
+                    <li>Difficulty</li>
+                    <li>Duration</li>
+                    <li>Cost</li>
+                </ul>
+                </p>
+            </div>
+        </div>
+        <div class="card route-item" data-route="route 2" data-img="route2.jpeg">
+            <h3>🌲 Route 2</h3>
+            <div class="route-details">
+                <p>Route 2 description
+                <ul>
+                    <li>Difficulty</li>
+                    <li>Duration</li>
+                    <li>Cost</li>
+                </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+    <a href="scheduling.html"><button class="schedulingButton">Ready to Schedule?</button></a>
+    <div id="map"></div>
+</body>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => { //makes sure html file loads first
+        // 1. Initialize the map (Focused on your routes)
+        const map = L.map('map', {
+            zoomControl: false // by putting false here I override where the zoom in and zoom out is
+        }).setView([39.32, -111.09], 6); //starts map rendering over the state of utah
+
+        // Add Zoom control to the bottom right so it doesn't hit our cards might move this later
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        // 2. Add the background layer (Dark mode looks great with orange/green)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+        const previewBox = document.getElementById('route-photo-preview');
+        const previewImg = document.getElementById('preview-img');
+
+        // 3. Fetch your GeoJSON data
+        fetch('map.geojson')
+            .then(response => response.json())
+            .then(data => {
+
+                // 4. Create the layer
+                let geoJsonLayer = L.geoJSON(data, {
+                    // Default style: Faded so the map looks clean
+                    style: function (feature) {
+                        return { color: "#ff5722", weight: 4, opacity: 0.4 };
+                    },
+
+                    // 5. Interaction: When you hover over the lines on the map
+                    onEachFeature: function (feature, layer) {
+                        var title = feature.properties.title || feature.properties.name || "Route";
+                        var desc = feature.properties.description || "No description provided.";
+
+                        // layer.bindPopup("<strong>" + title + "</strong><br>" + desc);
+
+                        layer.on('mouseover', function (e) {
+                            var currentRouteName = feature.properties.title || feature.properties.name;
+                            const previewBox = document.getElementById('route-photo-preview');
+                            const previewImg = document.getElementById('preview-img');
+                            // 1. Highlight ALL segments of this route on the map
+                            geoJsonLayer.eachLayer(function (piece) {
+                                if ((piece.feature.properties.title || piece.feature.properties.name) === currentRouteName) {
+                                    piece.setStyle({ color: "#ff0000", opacity: 1.0, weight: 8 });
+                                }
+                            });
+
+                            // 2. Find the HTML card and tell it to "Open"
+                            const matchingCard = document.querySelector(`.route-item[data-route="${currentRouteName}"]`);
+                            if (matchingCard) {
+                                matchingCard.classList.add('highlight-card');
+                            }
+
+                            this.openPopup(e.latlng);
+
+
+                            if (matchingCard) {
+                                matchingCard.classList.add('highlight-card');
+
+                                // Get the image name from the card
+                                const imgFile = matchingCard.getAttribute('data-img');
+
+                                if (imgFile) {
+                                    previewImg.src = "images/" + imgFile; // Assumes your photos are in an 'images' folder
+                                    previewBox.classList.add('show-photo');
+                                }
+                            }
+                        });
+
+                        layer.on('mouseout', function (e) {
+                            // Reset Map
+                            geoJsonLayer.setStyle({ color: "#ff5722", opacity: 0.4, weight: 4 });
+
+                            // Reset Cards (Closes them)
+                            document.querySelectorAll('.route-item').forEach(card => {
+                                card.classList.remove('highlight-card');
+                            });
+                            previewBox.classList.remove('show-photo');
+
+                        });
+                    }
+                }).addTo(map);
+
+                // 6. Perfect Fit: Auto-zoom the map to show all your routes
+                map.fitBounds(geoJsonLayer.getBounds(), { padding: [50, 50] });
+                map.setMinZoom(map.getZoom() - 1); // Let them zoom out just a tiny bit
+                // --- SIDEBAR TO MAP SYNC ---
+                // This listens for mouse movement on the HTML cards
+                const cards = document.querySelectorAll('.route-item');
+
+                cards.forEach(card => {
+                    card.addEventListener('mouseenter', () => {
+                        const routeName = card.getAttribute('data-route');
+
+                        // Search the map for the matching route
+                        geoJsonLayer.eachLayer(layer => {
+                            const featureName = layer.feature.properties.title || layer.feature.properties.name;
+
+                            if (featureName === routeName) {
+                                layer.setStyle({
+                                    color: "#ff0000",
+                                    opacity: 1.0,
+                                    weight: 10
+                                });
+                                layer.bringToFront();
+                                // Optional: layer.openPopup(); // Uncomment if you want the popup to pop too!
+                                // 2. NEW: The "Fly To" Logic
+                                // We get the 'bounds' (the box that fits that specific line)
+                                const bounds = layer.getBounds();
+
+                                // We tell the map to fly to those bounds with a smooth animation
+                                map.flyToBounds(bounds, {
+                                    padding: [100, 100], // Keeps the line away from the edges
+                                    duration: 1.5,        // Animation length in seconds
+                                    maxZoom: 14  // <--- Add this! Lower numbers = further away.
+                                });
+                            }
+                        });
+                    });
+                    card.addEventListener('mouseleave', () => {
+                        // Reset the map lines when you stop hovering over the card
+                        geoJsonLayer.setStyle({
+                            color: "#ff5722",
+                            opacity: 0.4,
+                            weight: 4,
+
+                        });
+                        // Fly the camera back to show all routes in Utah
+                        map.flyToBounds(geoJsonLayer.getBounds(), {
+                            padding: [50, 50],
+                            duration: 1.2
+
+                        });
+                    });
+                });
+            })
+            .catch(err => console.error("Could not load map.geojson. Make sure the file name is correct!", err));
+
+        // --- 7. UI INTERACTION (The "Fly To" Logic) ---
+        // This makes the map move when you hover over the HTML cards
+        const routeCards = document.querySelectorAll('.route-item');
+
+        routeCards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // In a real setup, you'd put coordinates in your HTML data-attributes
+                // Example: map.flyTo([lat, lng], 14);
+                console.log("User is looking at a route card!");
+            });
+        });
+    });
+</script>
+</body>
+
+</html>
