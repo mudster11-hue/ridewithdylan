@@ -1,0 +1,201 @@
+:root {
+            --moto-orange: #ff5722;
+            --dark-green: #1e2c20;
+            --glass-bg: rgba(30, 44, 32, 0.85);
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: sans-serif;
+            /* overflow: hidden; */
+            /* Prevents the whole page from scrolling */
+        }
+
+        /* THE FULLSCREEN MAP */
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            z-index: 1;
+        }
+
+        /* FLOATING UI CONTAINER */
+        .ui-layer {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            z-index: 1000;
+            /* Must be high to sit on top of Leaflet */
+            width: 320px;
+            pointer-events: none;
+            /* Allows clicking map through the gaps */
+        }
+
+        .card {
+            background: var(--glass-bg);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 6px solid var(--moto-orange);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            pointer-events: auto;
+            /* Re-enables clicking on the cards */
+            margin-bottom: 20px;
+            backdrop-filter: blur(5px);
+            /* Blurs the map behind the card */
+        }
+
+        .intro-card h1 {
+            font-family: 'Archivo Black', sans-serif;
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--moto-orange);
+        }
+
+        .intro-card p {
+            font-family: 'Caveat', cursive;
+            font-size: 1.4rem;
+            margin: 10px 0 0 0;
+        }
+
+        /* ROUTE ITEMS */
+        .route-item {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .route-item h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        /* The hidden section that pops up */
+        .route-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .route-item:hover {
+            background: var(--dark-green);
+            transform: translateX(10px);
+        }
+
+        .route-item:hover .route-details {
+            max-height: 200px;
+            /* Expands on hover */
+            margin-top: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--moto-orange);
+            text-decoration: none;
+            font-weight: bold;
+            border: 1px solid var(--moto-orange);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .btn:hover {
+            background: var(--moto-orange);
+            color: white;
+        }
+
+        /* 2. ADD THIS TO YOUR CSS */
+        .topnav {
+            background-color: #1e2c20;
+            overflow: hidden;
+            position: relative;
+            /* This ensures it stays at the top of the page */
+            z-index: 2000;
+            /* This ensures it sits ABOVE the map and the cards */
+        }
+
+        .topnav a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+
+        .topnav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        .topnav a.active {
+            background-color: #ff5722;
+            color: white;
+        }
+
+        .card.highlight-card {
+            border-left: 8px solid #ff0000;
+            /* Turns bright red */
+            background: #2a3b2c;
+            /* Slightly lighter green to show it's active */
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+        }
+
+        .route-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+            /* This makes it "slide" */
+        }
+
+        /* When the JavaScript adds 'highlight-card', the details slide open! */
+        .highlight-card .route-details {
+            max-height: 200px;
+            /* Big enough to show the text */
+            margin-top: 10px;
+        }
+
+        /* The glowing border effect */
+        .highlight-card {
+            border-left: 8px solid #ff0000 !important;
+            background-color: #2a3b2c !important;
+        }
+
+        .schedulingButton {
+            padding: 15px 40px;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1.2rem;
+            background-color: #ff5722;
+            /* A bright "Moto" Orange */
+            color: white;
+            border: none;
+            cursor: pointer;
+            letter-spacing: 2px;
+            /* transform: translateX(-50%); */
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+            bottom: 300px;
+            position: absolute;
+            left: 80%;
+            z-index: 10;
+        }
+#image1, #image2 {
+    z-index: 9999 !important; 
+    position: fixed;
+   margin-top: 60px;
+    margin-right: 50px;        /* 20px from the right */
+    
+    /* THE FIX IS HERE */
+    width: 250px;       /* Change this number to make it bigger or smaller */
+    height: auto;       /* This keeps the photo from looking "squished" */
+    
+    border: 4px solid white;    /* Adds a nice frame */
+    border-radius: 8px;         /* Rounds the corners slightly */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* Adds a shadow so it "pops" */
+}

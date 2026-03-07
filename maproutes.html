@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dylan's Rides | Map Explorer</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="map.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Caveat&display=swap" rel="stylesheet">
+</head>
+
+<>
+    <div class="topnav">
+        <a class="active" href="index.html">Home</a>
+        <a href="maproutes.html">Routes</a>
+        <a href="scheduling.html">Scheduling</a>
+    </div>
+    <!-- <img src="route1.jpeg" alt="route 1 image" class="route-display-photo1" style="width: 200px;"> -->
+    <div class="ui-layer">
+
+        <div class="card intro-card">
+            <h1>DYLAN'S RIDES</h1>
+            <p>Select a route to explore the mountains.</p>
+        </div>
+
+        <div id="route1" class="card route-item" data-route="route1">
+
+            <h3>🏔️ Route 1</h3>
+            <div class="route-details">
+                <p>Route 1 description
+                <ul>
+                    <li>Difficulty</li>
+                    <li>Duration</li>
+                    <li>Cost</li>
+                </ul>
+                </p>
+            </div>
+        </div>
+        <div id="route2" class="card route-item" data-route="route2">
+            <h3>🌲 Route 2</h3>
+            <div class="route-details">
+                <p>Route 2 description
+                <ul>
+                    <li>Difficulty</li>
+                    <li>Duration</li>
+                    <li>Cost</li>
+                </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+    <img id="image1" src="route1.jpeg" alt="Image 1" style="display: none; position: fixed; top: 20px; right: 20px;">
+    <img id="image2" src="route2.jpeg" alt="Image 2" style="display: none; position: fixed; top: 20px; right: 20px;">
+    <div id="targetElement" style="display:none;">
+        This is the linked element!
+    </div>
+    <a href="scheduling.html"><button class="schedulingButton">Ready to Schedule?</button></a>
+    <div id="map"></div>
+
+
+
+
+    <script src="map.js"></script>
+    </body>
+
+</html>
